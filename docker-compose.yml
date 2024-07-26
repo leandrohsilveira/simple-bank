@@ -1,0 +1,27 @@
+version: "3.1"
+
+volumes:
+  app_dbdata:
+
+networks:
+  app_database:
+
+services:
+  app_database:
+    image: postgres:alpine
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    volumes:
+      - app_dbdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-password}
+    networks:
+      - app_database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
