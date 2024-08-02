@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
@@ -12,6 +14,7 @@ import (
 	"github.com/leandrohsilveira/simple-bank/configs"
 
 	fiberRecover "github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/leandrohsilveira/simple-bank/server/util"
 	"github.com/leandrohsilveira/simple-bank/server/view"
 )
 
@@ -36,6 +39,35 @@ func main() {
 	app := fiber.New(fiber.Config{
 		AppName:       "Simple Bank",
 		CaseSensitive: true,
+		ErrorHandler: func(c fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+
+			var e *fiber.Error
+			if errors.As(err, &e) {
+				code = e.Code
+			}
+
+			if view.Accept(c) == "application/json" {
+				return c.Status(code).JSON(fiber.Map{
+					"message": err.Error(),
+				})
+			}
+
+			msg := util.Message{
+				Type:    util.MessageError,
+				Message: err.Error(),
+			}
+
+			json, err := msg.Json()
+
+			if err != nil {
+				return fmt.Errorf("cannot marshal error message: %w", err)
+			}
+
+			c.Set("HX-Trigger", json)
+
+			return c.SendStatus(code)
+		},
 	})
 
 	app.Use(fiberRecover.New(fiberRecover.Config{
