@@ -12,6 +12,7 @@ import (
 	"github.com/leandrohsilveira/simple-bank/configs"
 
 	fiberRecover "github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/leandrohsilveira/simple-bank/server/view"
 )
 
 func main() {
@@ -42,7 +43,12 @@ func main() {
 	}))
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
-		Format: "[${time}] ${locals:requestid} ${ip} ${status} - ${latency} ${method} ${path} ${error}\n",
+		Format: "[${time}] ${latency} - ip:${ip} accept:${accept} ${method} ${path} in:${bytesReceived}b - ${status} content-type:${respHeader:content-type} out:${bytesSent}b: ${error}\n",
+		CustomTags: map[string]logger.LogFunc{
+			"accept": func(output logger.Buffer, c fiber.Ctx, data *logger.Data, _ string) (int, error) {
+				return output.WriteString(view.Accept(c))
+			},
+		},
 	}))
 
 	app.Get("/*", static.New("./client/dist"))

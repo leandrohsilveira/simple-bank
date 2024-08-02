@@ -2,6 +2,7 @@ package user_domain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v3"
@@ -11,6 +12,7 @@ import (
 )
 
 const UserTableTarget = "users-table"
+const UserFormTarget = "user-form"
 
 type UserService struct {
 	domain.DomainService
@@ -25,6 +27,18 @@ func NewUserService(ctx fiber.Ctx) (service UserService, err error) {
 	return
 }
 
+func WithUserService(handler func(fiber.Ctx, UserService) error) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		service, err := NewUserService(c)
+
+		if err != nil {
+			return err
+		}
+
+		return handler(c, service)
+	}
+}
+
 func (service UserService) UserTableData(ctx context.Context) ([]UserDTO, error) {
 	users, err := service.store.Queries.ListUsers(ctx, database.ListUsersParams{
 		Offset: 0,
@@ -36,6 +50,16 @@ func (service UserService) UserTableData(ctx context.Context) ([]UserDTO, error)
 	}
 
 	return FromUsers(users), nil
+}
+
+func (service UserService) UserEditData(ctx context.Context, id int64) (UserDTO, error) {
+	user, err := service.store.Queries.GetUserById(ctx, id)
+
+	if err != nil {
+		return UserDTO{}, err
+	}
+
+	return FromUser(user), nil
 }
 
 func (service UserService) UserTableFragment(ctx context.Context) (component templ.Component, err error) {
@@ -56,4 +80,18 @@ func (service UserService) UserTableFragment(ctx context.Context) (component tem
 	})
 
 	return
+}
+
+func (service UserService) UserFormFragment(ctx context.Context, id *int64) (component templ.Component, err error) {
+	if id == nil {
+		return UserForm("/users/new", UserDTO{}), nil
+	}
+
+	user, err := service.UserEditData(ctx, *id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return UserForm(fmt.Sprintf("/users/%d", *id), user), nil
 }

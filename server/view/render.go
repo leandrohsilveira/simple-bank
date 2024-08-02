@@ -18,8 +18,13 @@ func Render(ctx fiber.Ctx, component templ.Component) error {
 	return component.Render(ctx.UserContext(), ctx.Response().BodyWriter())
 }
 
-func RenderPage(ctx fiber.Ctx, component templ.Component) error {
+func RenderPage(ctx fiber.Ctx, component templ.Component, title string) error {
 	hxRequest := ctx.GetReqHeaders()["Hx-Request"]
+
+	page := layout.Layout(
+		title,
+		component,
+	)
 
 	if len(hxRequest) == 0 {
 
@@ -30,12 +35,12 @@ func RenderPage(ctx fiber.Ctx, component templ.Component) error {
 					MainId:      components.MainId,
 					CurrentPath: ctx.Path(),
 				},
-				component,
+				page,
 			),
 		)
 	}
 
-	return Render(ctx, component)
+	return Render(ctx, page)
 }
 
 func Json(handler fiber.Handler) fiber.Handler {
@@ -57,20 +62,10 @@ func Htmx(handler fiber.Handler) fiber.Handler {
 	)
 }
 
-func Fragment(fragmentId string, handler func(fiber.Ctx) (templ.Component, error)) fiber.Handler {
+func Fragment(fragmentId string, handler fiber.Handler) fiber.Handler {
 	return html(
 		skip.New(
-			func(c fiber.Ctx) error {
-
-				component, err := handler(c)
-
-				if err != nil {
-					return err
-				}
-
-				return RenderPage(c, component)
-
-			},
+			handler,
 			func(ctx fiber.Ctx) bool {
 				hxTarget := ctx.GetReqHeaders()["Hx-Target"]
 
@@ -80,18 +75,10 @@ func Fragment(fragmentId string, handler func(fiber.Ctx) (templ.Component, error
 	)
 }
 
-func Page(handler func(c fiber.Ctx) (page templ.Component, title string, err error)) fiber.Handler {
+func Page(handler fiber.Handler) fiber.Handler {
 	return html(
 		skip.New(
-			func(c fiber.Ctx) error {
-				page, title, err := handler(c)
-
-				if err != nil {
-					return err
-				}
-
-				return RenderPage(c, layout.Layout(title, page))
-			},
+			handler,
 			func(ctx fiber.Ctx) bool {
 				hxTarget := ctx.GetReqHeaders()["Hx-Target"]
 
@@ -101,9 +88,13 @@ func Page(handler func(c fiber.Ctx) (page templ.Component, title string, err err
 	)
 }
 
+func Accept(ctx fiber.Ctx) string {
+	return ctx.Accepts("text/html", "application/json")
+}
+
 func accepts(contentType string) func(fiber.Ctx) bool {
 	return func(ctx fiber.Ctx) bool {
-		return ctx.Accepts("text/html", "application/json") != contentType
+		return Accept(ctx) != contentType
 	}
 }
 
