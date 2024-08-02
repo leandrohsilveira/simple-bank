@@ -1,0 +1,134 @@
+package components
+
+import (
+	"fmt"
+	"github.com/leandrohsilveira/simple-bank/server/util"
+)
+
+type TableProps[T any] struct {
+	Items  []T
+	Search string
+	Count  int
+	Page   int
+	Limit  int
+	Header templ.Component
+	Row    func(item T, index int) templ.Component
+	Empty  templ.Component
+}
+
+func (props TableProps[T]) GetPages() int {
+	return util.MaxOf(props.Count+props.Limit-1, 0) / props.Limit
+}
+
+func (props TableProps[T]) GetOffsetLeft() int {
+	return util.MinOf(util.MaxOf(props.Page-1, 0), 2)
+}
+
+func (props TableProps[T]) GetOffsetRight() int {
+	return util.MinOf(util.MaxOf(props.GetPages()-props.Page, 0), 2)
+}
+
+func (props TableProps[T]) GetFirstPage() int {
+	return util.MaxOf(props.Page-(props.GetOffsetLeft()+(2-props.GetOffsetRight())), 1)
+}
+
+func (props TableProps[T]) GetLastPage() int {
+	return util.MinOf(props.Page+(props.GetOffsetRight()+(3-(props.GetOffsetLeft()+1))), props.GetPages())
+}
+
+func (props TableProps[T]) GetStart() int {
+	return util.MaxOf(props.Page-1, 0) * props.Limit
+}
+
+func (props TableProps[T]) GetEnd() int {
+	return util.MinOf(props.GetStart()+props.Limit, props.Count)
+}
+
+func (props TableProps[T]) DisplayStart() string {
+	return fmt.Sprint(util.MinOf(props.GetStart()+1, props.Count))
+}
+
+func (props TableProps[T]) PageList() []int {
+	list := make([]int, util.MaxOf(props.GetLastPage()-props.GetFirstPage()+1, 1))
+	start := props.GetStart()
+	for index := range list {
+		list[index] = start + index + 1
+	}
+	return list
+}
+
+templ Table[T any](props TableProps[T]) {
+	<div class="overflow-x-auto flex flex-col gap-4">
+		<div class="flex gap-2 items-end">
+			@Fieldset(FieldsetProps{Id: "search", Name: "search", Label: "Search"}) {
+				<input type="text" name="search" id="search" value={ props.Search }/>
+			}
+			@Button(templ.Attributes{"type": "submit", "name": "page", "value": "1"}) {
+				Search
+			}
+		</div>
+		<input type="hidden" name="limit" value={ fmt.Sprint(props.Limit) }/>
+		<table class="table w-full">
+			<thead class="border-b border-gray-300">
+				@props.Header
+			</thead>
+			<tbody>
+				if len(props.Items) == 0 {
+					@props.Empty
+				}
+				for index, item := range props.Items {
+					@props.Row(item, index)
+				}
+			</tbody>
+		</table>
+		<div class="flex items-center justify-end gap-4">
+			<div>
+				Showing { props.DisplayStart() }-{ fmt.Sprint(props.GetEnd()) } of { fmt.Sprint(props.Count) } item(s)
+			</div>
+			<div class="flex items-center gap-2">
+				@paginationButton(paginationButtonProps{Page: 1, Active: false, Disabled: props.Page <= 2}) {
+					{ "<<" }
+				}
+				@paginationButton(paginationButtonProps{Page: props.Page - 1, Active: false, Disabled: props.Page == 1}) {
+					{ "<" }
+				}
+				for _, page := range props.PageList() {
+					@paginationButton(paginationButtonProps{Page: page, Active: page == props.Page, Disabled: false}) {
+						{ fmt.Sprint(page) }
+					}
+				}
+				@paginationButton(paginationButtonProps{Page: props.Page + 1, Active: false, Disabled: props.Page >= props.GetPages()}) {
+					{ ">" }
+				}
+				@paginationButton(paginationButtonProps{Page: props.GetPages(), Active: false, Disabled: props.Page > props.GetPages()-2}) {
+					{ ">>" }
+				}
+			</div>
+		</div>
+	</div>
+}
+
+type paginationButtonProps struct {
+	Page     int
+	Active   bool
+	Disabled bool
+}
+
+templ paginationButton(props paginationButtonProps) {
+	<button
+		class={ "h-8 w-8 text-center rounded-full",
+      "hover:bg-primary-100 hover:text-on-primary-100",
+      map[string]bool{
+        "disabled:bg-primary-400 disabled:text-on-primary-400 disabled:cursor-default":
+          !props.Disabled,
+        "disabled:bg-transparent disabled:text-background-300 disabled:cursor-not-allowed":
+          props.Disabled,
+      } }
+		type="submit"
+		name="page"
+		value={ fmt.Sprintf("%v", props.Page) }
+		disabled?={ props.Active || props.Disabled }
+	>
+		{ children... }
+	</button>
+}

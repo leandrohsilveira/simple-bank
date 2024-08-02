@@ -4,10 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/leandrohsilveira/simple-bank/server/database"
 	"github.com/stretchr/testify/require"
 )
-
-
 
 func TestCreateAccount(t *testing.T) {
 	account, arg, err := CreateRandomAccount(context.Background(), testQueries)
@@ -15,7 +14,7 @@ func TestCreateAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
 
-	require.Equal(t, arg.Owner, account.Owner)
+	require.Equal(t, arg.OwnerID, account.OwnerID)
 	require.Equal(t, arg.Balance, account.Balance)
 	require.Equal(t, arg.Currency, account.Currency)
 	require.NotZero(t, account.CreatedAt)
@@ -32,7 +31,7 @@ func TestGetAccountById(t *testing.T) {
 	require.NotEmpty(t, account)
 
 	require.Equal(t, createdAccount.ID, account.ID)
-	require.Equal(t, createdAccount.Owner, account.Owner)
+	require.Equal(t, createdAccount.OwnerID, account.OwnerID)
 	require.Equal(t, createdAccount.Balance, account.Balance)
 	require.Equal(t, createdAccount.Currency, account.Currency)
 }
@@ -42,7 +41,7 @@ func TestListAccounts(t *testing.T) {
 
 	require.NoError(t, err)
 
-	accounts, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{
+	accounts, err := testQueries.ListAccounts(context.Background(), database.ListAccountsParams{
 		Limit:  5,
 		Offset: 0,
 	})
@@ -51,7 +50,7 @@ func TestListAccounts(t *testing.T) {
 	require.NotEmpty(t, accounts)
 
 	require.Equal(t, createdAccount.ID, accounts[0].ID)
-	require.Equal(t, createdAccount.Owner, accounts[0].Owner)
+	require.Equal(t, createdAccount.OwnerID, accounts[0].OwnerID)
 	require.Equal(t, createdAccount.Balance, accounts[0].Balance)
 	require.Equal(t, createdAccount.Currency, accounts[0].Currency)
 }
@@ -61,8 +60,8 @@ func TestAddAccountBalance(t *testing.T) {
 
 	require.NoError(t, err)
 
-	arg := AddAccountBalanceParams{
-		ID:      createdAccount.ID,
+	arg := database.AddAccountBalanceParams{
+		ID:     createdAccount.ID,
 		Change: 1000,
 	}
 
@@ -72,8 +71,8 @@ func TestAddAccountBalance(t *testing.T) {
 	require.NotEmpty(t, account)
 
 	require.Equal(t, createdAccount.ID, account.ID)
-	require.Equal(t, createdAccount.Owner, account.Owner)
-	require.Equal(t, createdAccount.Balance + arg.Change, account.Balance)
+	require.Equal(t, createdAccount.OwnerID, account.OwnerID)
+	require.Equal(t, createdAccount.Balance+arg.Change, account.Balance)
 	require.Equal(t, createdAccount.Currency, account.Currency)
 }
 

@@ -1,0 +1,39 @@
+package layout
+
+import (
+	"github.com/leandrohsilveira/simple-bank/configs"
+	"github.com/leandrohsilveira/simple-bank/server/components"
+)
+
+type HtmlProps struct {
+	MainId      string
+	CurrentPath string
+}
+
+templ Html(props HtmlProps, component templ.Component) {
+	<html>
+		<head lang="en">
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="htmx-config" content={ configs.NewDefaultHtmxConfig().Json() }/>
+			<title>Golang + Fiber + Templ + HTMX</title>
+			<link rel="stylesheet" href="/style.css"/>
+			<script type="module" src="/main.js"></script>
+		</head>
+		<body class="flex flex-col items-center gap-2">
+			<header class="bg-primary-700 text-on-primary-700 p-4 md:h-16 w-full flex items-center justify-center px-4">
+				<div class="container flex flex-col md:flex-row items-center md:justify-between gap-4">
+					<h1>Golang + Fiber + Templ + HTMX</h1>
+					@navbar(props.CurrentPath, components.RefId(props.MainId))
+				</div>
+			</header>
+			<main id={ props.MainId } class="container flex flex-col gap-4" hx-history-elt>
+				@component
+			</main>
+			<div
+				id="messages"
+				class="fixed bottom-0 left-0 right-0 flex flex-col-reverse items-center gap-2 p-4"
+			></div>
+		</body>
+	</html>
+}

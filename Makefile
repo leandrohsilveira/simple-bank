@@ -18,3 +18,18 @@ migrate-reset:
 
 sqlc:
 	@sqlc generate
+
+templ:
+	@templ generate --path ./server
+
+server-start: sqlc templ
+	@go run ./server
+
+server-dev:
+	@wgo -dir ./server -dir ./database -xdir ./server/database -file .go -file .templ -file .mod -xfile _templ.go make server-start
+
+client-build:
+	@cd ./client && npm run build
+
+client-dev:
+	@cd ./client && npm run dev

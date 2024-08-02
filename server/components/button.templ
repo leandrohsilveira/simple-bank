@@ -1,0 +1,37 @@
+package components
+
+templ Button(attrs templ.Attributes) {
+	<button { attrs... } class={ buttonClass(attrs) }>
+		{ children... }
+	</button>
+}
+
+templ Link(attrs templ.Attributes) {
+	<a
+		{ attrs... }
+		class={ buttonClass(attrs) }
+		href={ templ.SafeURL(attrs["href"].(string)) }
+		hx-boost="true"
+		hx-push-url="true"
+		hx-target={ RefId(MainId) }
+	>
+		{ children... }
+	</a>
+}
+
+func buttonClass(attrs templ.Attributes) (classes map[string]bool) {
+	classes = map[string]bool{
+		"bg-primary-600 text-on-primary-600":             true,
+		"hover:bg-primary-800 hover:text-on-primary-800": true,
+		"transition-all duration-300 ease-in-out":        true,
+		"h-12 px-4 rounded":                              true,
+	}
+
+	class, ok := attrs["class"].(string)
+
+	if ok {
+		classes[class] = true
+	}
+
+	return
+}

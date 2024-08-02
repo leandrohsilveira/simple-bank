@@ -1,0 +1,26 @@
+package components
+
+type FieldsetProps struct {
+	Id    string
+	Name  string
+	Class string
+	Label string
+}
+
+templ Fieldset(props FieldsetProps) {
+	<label for={ props.Id }>
+		<fieldset
+			name={ props.Name }
+			class={
+				"border rounded border-on-background-50 text-on-background-50",
+				"h-12 px-4",
+				props.Class,
+			}
+		>
+			if props.Label != "" {
+				<legend>{ props.Label }</legend>
+			}
+			{ children... }
+		</fieldset>
+	</label>
+}

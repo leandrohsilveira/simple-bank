@@ -1,0 +1,28 @@
+package layout
+
+templ navbarLink(currentPath, href string) {
+	<a
+		class={ map[string]bool{"active": currentPath == href} }
+		href={ templ.SafeURL(href) }
+		hx-get={ href }
+	>
+		{ children... }
+	</a>
+}
+
+templ navbar(currentPath, mainRef string) {
+	<nav
+		id="nav"
+		class="flex items-center gap-2"
+		hx-push-url="true"
+		hx-target={ mainRef }
+		hx-inherit="*"
+	>
+		@navbarLink(currentPath, "/users") {
+			Manage users
+		}
+		@navbarLink(currentPath, "/users/new") {
+			Create user
+		}
+	</nav>
+}

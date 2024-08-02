@@ -4,10 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/leandrohsilveira/simple-bank/server/database"
 	"github.com/stretchr/testify/require"
 )
-
-
 
 func TestCreateTransfer(t *testing.T) {
 	transfer, arg, err := CreateRandomTransfer(context.Background(), testQueries)
@@ -44,7 +43,7 @@ func TestListTransfers(t *testing.T) {
 
 	require.NoError(t, err)
 
-	transfers, err := testQueries.ListTransfers(context.Background(), ListTransfersParams{
+	transfers, err := testQueries.ListTransfers(context.Background(), database.ListTransfersParams{
 		Limit:  5,
 		Offset: 0,
 	})
@@ -64,10 +63,10 @@ func TestUpdateTransfer(t *testing.T) {
 
 	require.NoError(t, err)
 
-	arg := UpdateTransferParams{
+	arg := database.UpdateTransferParams{
 		ID:     createdTransfer.ID,
 		Amount: 1000,
-		Status: TransferStatusPending,
+		Status: database.TransferStatusPending,
 	}
 
 	transfer, err := testQueries.UpdateTransfer(context.Background(), arg)

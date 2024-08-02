@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/leandrohsilveira/simple-bank/server/database"
 	"github.com/stretchr/testify/require"
 )
-
 
 func TestCreateEntry(t *testing.T) {
 	entry, arg, err := CreateRandomEntry(context.Background(), testQueries)
@@ -41,7 +41,7 @@ func TestListEntries(t *testing.T) {
 
 	require.NoError(t, err)
 
-	entries, err := testQueries.ListEntries(context.Background(), ListEntriesParams{
+	entries, err := testQueries.ListEntries(context.Background(), database.ListEntriesParams{
 		Limit:  5,
 		Offset: 0,
 	})
@@ -60,7 +60,7 @@ func TestUpdateEntry(t *testing.T) {
 
 	require.NoError(t, err)
 
-	arg := UpdateEntryParams{
+	arg := database.UpdateEntryParams{
 		ID:     createdEntry.ID,
 		Amount: 2000,
 	}

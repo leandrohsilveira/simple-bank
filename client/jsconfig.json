@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "strict": true,
+        "noStrictGenericChecks": false,
+        "module": "Preserve",
+        "moduleResolution": "Bundler",
+        "resolveJsonModule": true,
+        "target": "ES6",
+        "outDir": "dist"
+    },
+    "include": [
+        "./app/*.js",
+        "./app/*.ts",
+        "./app/**/*.js",
+        "./app/**/*.ts"
+    ],
+}

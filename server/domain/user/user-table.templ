@@ -1,0 +1,72 @@
+package user_domain
+
+import (
+	"fmt"
+	"github.com/leandrohsilveira/simple-bank/server/components"
+)
+
+type UserTableProps struct {
+	Users    []UserDTO
+	Endpoint string
+	Id       string
+	Search   string
+	Page     int
+	Limit    int
+	Count    int
+}
+
+func (props UserTableProps) GetIndicator() string {
+	return fmt.Sprintf("%v-indicator", props.Id)
+}
+
+templ UserTable(props UserTableProps) {
+	<form
+		id={ props.Id }
+		action={ templ.SafeURL(props.Endpoint) }
+		method="GET"
+		hx-get={ props.Endpoint }
+		hx-boost="true"
+		hx-target={ components.RefId(props.Id) }
+		hx-swap="outerHTML"
+		hx-indicator={ components.RefId(props.GetIndicator()) }
+		class="relative"
+	>
+		<div id={ props.GetIndicator() } class="htmx-indicator indicator-absolute"></div>
+		@components.Table(components.TableProps[UserDTO]{
+			Items:  props.Users,
+			Page:   props.Page,
+			Limit:  props.Limit,
+			Count:  props.Count,
+			Search: props.Search,
+			Header: userTableHeader(),
+			Row:    userTableRow,
+			Empty:  userTableEmpty(),
+		})
+	</form>
+}
+
+templ userTableHeader() {
+	<tr>
+		<th>Name</th>
+		<th>Email</th>
+		<th>#</th>
+	</tr>
+}
+
+templ userTableRow(user UserDTO, index int) {
+	<tr>
+		<td>{ user.Name }</td>
+		<td>{ user.Email }</td>
+		<td>
+			@components.Link(templ.Attributes{"href": fmt.Sprintf("/users/%v", user.Id)}) {
+				Edit
+			}
+		</td>
+	</tr>
+}
+
+templ userTableEmpty() {
+	<tr>
+		<td colspan="3">No users</td>
+	</tr>
+}

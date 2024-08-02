@@ -13,11 +13,11 @@ func SetupTestingDatabase(ctx context.Context, migrationsSource string, config c
 
 	dbConfig, err := pgxpool.ParseConfig(dbSource)
 
-	dbConfig.MaxConns = int32(config.MaxConns)
-
 	if err != nil {
 		log.Fatalln("cannot parse db config:", err)
 	}
+
+	dbConfig.MaxConns = int32(config.MaxConns)
 
 	pool, err := pgxpool.NewWithConfig(ctx, dbConfig)
 
@@ -32,13 +32,7 @@ func SetupTestingDatabase(ctx context.Context, migrationsSource string, config c
 		log.Fatalln("cannot create migration instance:", err)
 	}
 
-	err = migrator.Down()
-
-	if err != nil {
-		pool.Close()
-		log.Println("cannot run migration down:", err.Error())
-	}
-
+	migrator.Down()
 	err = migrator.Up()
 
 	if err != nil {

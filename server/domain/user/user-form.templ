@@ -1,0 +1,38 @@
+package user_domain
+
+import "github.com/leandrohsilveira/simple-bank/server/components"
+
+const UserFormId = "user-form"
+
+templ UserForm(endpoint string, user UserDTO) {
+	<form
+		id={ UserFormId }
+		action={ templ.SafeURL(endpoint) }
+		method="POST"
+		class="w-full flex flex-col gap-2 max-w-96 self-center px-2"
+		hx-boost="true"
+		hx-target={ components.RefId(UserFormId) }
+		hx-swap="outerHTML"
+	>
+		<input type="hidden" name="id" value={ templ.JSONString(user.Id) }/>
+		@components.Fieldset(components.FieldsetProps{Id: "name", Name: "name", Label: "Name"}) {
+			<input type="text" id="name" name="name" value={ user.Name }/>
+		}
+		@components.Fieldset(components.FieldsetProps{Id: "email", Name: "email", Label: "Email"}) {
+			<input type="email" id="email" name="email" value={ user.Email } autocomplete="username"/>
+		}
+		if IsUserDTOEmpty(user) {
+			@components.Fieldset(components.FieldsetProps{Id: "password", Name: "password", Label: "Password"}) {
+				<input type="password" id="password" name="password" autocomplete="new-password"/>
+			}
+			@components.Fieldset(components.FieldsetProps{Id: "confirm_password", Name: "confirm_password", Label: "Confirm password"}) {
+				<input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password"/>
+			}
+		}
+		<div class="flex flex-row-reverse">
+			@components.Button(templ.Attributes{"type": "submit"}) {
+				Save
+			}
+		</div>
+	</form>
+}

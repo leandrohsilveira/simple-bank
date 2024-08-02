@@ -1,7 +1,7 @@
 package database
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -17,13 +17,13 @@ func NewMigrate(relativePath, dbSource string) (*migrate.Migrate, error) {
 	cwd, err := os.Getwd()
 
 	if err != nil {
-		log.Fatalln("cannot get current working directory:", err)
+		return nil, fmt.Errorf("cannot get current working directory: %w", err)
 	}
 
 	appPath, err := filepath.Abs(path.Join(cwd, relativePath))
 
 	if err != nil {
-		log.Fatalln("cannot get absolute path:", err)
+		return nil, fmt.Errorf("cannot get absolute path: %w", err)
 	}
 
 	return migrate.New(path.Join("file://", appPath), dbSource)
